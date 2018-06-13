@@ -21,7 +21,8 @@ namespace LivroApi.Controllers
         [HttpGet("{id}")]
         public ActionResult<string> Get(int id)
         {
-            return "value";
+            return Ok("value");
+            //return "value";
         }
 
         // POST api/values

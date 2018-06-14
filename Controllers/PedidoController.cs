@@ -67,7 +67,7 @@ namespace LivroApi.Controllers
             }
             catch (System.Exception)
             {
-                return StatusCode(HttpStatusCode.InternalServerError);
+                return StatusCode(500);
             }
         }
 
@@ -90,7 +90,7 @@ namespace LivroApi.Controllers
             }
             catch (System.Exception)
             {
-                return StatusCode(HttpStatusCode.InternalServerError);
+                return StatusCode(500);
             }
         }
 
@@ -109,7 +109,7 @@ namespace LivroApi.Controllers
             }
             catch (System.Exception)
             {
-                return StatusCode(HttpStatusCode.InternalServerError);
+                return StatusCode(500);
             }
         }
     }

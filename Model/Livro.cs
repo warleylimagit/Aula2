@@ -18,5 +18,8 @@ namespace LivroApi.Model
         public string Autor { get; set; }
 
         public string Ano { get; set; }
+
+        [Required]
+        public double Valor { get; set; }
     }
 }

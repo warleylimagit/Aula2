@@ -4,25 +4,25 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using LivroApi.Model;
-
+using LivroApi.Repositorio;
+using System.Net;
 
 namespace LivroApi.Controllers
 {
-    [Route("api/v1/[controller]")]
-    [Route("api/v1/[controller]/[action]")]
+    [Route("api/v1/[controller]")]    
     [ApiController]
     public class LivroController : ControllerBase
     {    
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(Livros()); 
+            return Ok(RepositorioDados.GetLivros()); 
         }
 
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {   
-            var _livrosList = Livros();
+            var _livrosList = RepositorioDados.GetLivros();
 
             Livro livro = _livrosList.Where(l => l.Id == id).FirstOrDefault();
 
@@ -32,14 +32,17 @@ namespace LivroApi.Controllers
             return StatusCode(302, livro); //Retorna status Found
         }
 
+        [Route("api/v1/[controller]/[action]")]
         [HttpGet]
         public IActionResult GetLivro([FromQuery] Livro livro)
         {
             if(livro == null)
                 return BadRequest("Necessário informar pelo menos 1 item para buscar o livro!");
             
-            var _livro = Livros().Where(l => l.Ano == livro.Ano || l.Autor.Contains(livro.Autor) 
-                                || l.Registro == livro.Registro || l.Titulo.Contains(livro.Titulo))
+            var _livro = RepositorioDados.GetLivros()
+                                .Where(l => l.Ano == livro.Ano || l.Autor.Contains(livro.Autor) 
+                                || l.Registro == livro.Registro || l.Titulo.Contains(livro.Titulo)
+                                || l.Valor == livro.Valor)
                                 .ToList();
             
             if(_livro == null || _livro.Count == 0)
@@ -51,10 +54,17 @@ namespace LivroApi.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] Livro _livro)
         {
-            if(!ModelState.IsValid)
-                return BadRequest(ModelState);
+            try
+            {
+                if(!ModelState.IsValid)
+                    return BadRequest(ModelState);
 
-            return Created($"api/vi/{_livro.Registro}", _livro);
+                return Created($"api/vi/{_livro.Registro}", _livro);
+            }
+            catch (System.Exception)
+            {
+                return StatusCode(HttpStatusCode.InternalServerError);
+            }            
         }
 
         [HttpPut("{id}")]
@@ -63,7 +73,8 @@ namespace LivroApi.Controllers
             if(!id.HasValue)
                 return BadRequest("Necessário o Id do livro para atualizar os dados!");
             
-            Livro livro = Livros().Where(l => l.Id == id).FirstOrDefault();
+            Livro livro = RepositorioDados.GetLivros()
+                                          .Where(l => l.Id == id).FirstOrDefault();
             if(livro == null)
                 return NotFound(livro);
 
@@ -81,20 +92,22 @@ namespace LivroApi.Controllers
             if(!id.HasValue)
                 return BadRequest("Necessário o Id para excluir o Livro!");
             
-            Livro livro = Livros().Where(l => l.Id == id).FirstOrDefault();
+            Livro livro = RepositorioDados.GetLivros()
+                                          .Where(l => l.Id == id).FirstOrDefault();
             if(livro == null)
                 return NotFound();
 
             return Ok("Sucesso");
         }
         
+        [Route("api/v1/[controller]/[action]")]
         [HttpPost]
         public IActionResult Comentario([FromBody] Comentario comentario)
         {
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if(!Livros().Any(l => l.Id == comentario.LivroId))
+            if(!RepositorioDados.GetLivros().Any(l => l.Id == comentario.LivroId))
                 return NotFound();
 
             Comentario _comentario = new Comentario{
@@ -105,25 +118,6 @@ namespace LivroApi.Controllers
             };   
             
             return Created("", _comentario);
-        }
-
-        private IList<Livro> Livros()
-        {
-            List<Livro> _livroList = new List<Livro>();
-            for (int i = 0; i < 5; i++)
-            {
-                Livro _livro = new Livro{
-                Id = i,
-                Ano = "2018",
-                Autor = $"Autor{i}",
-                Registro = $"f12345{i}",
-                Titulo = $"Titulo{i}"
-                };
-
-                _livroList.Add(_livro);
-            }
-
-            return _livroList;
         }
     }
 }
